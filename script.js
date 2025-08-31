@@ -10,18 +10,21 @@ function loadData() {
   categories = JSON.parse(localStorage.getItem('categories') || '[]');
 }
 
-// 既存データを「子対応」に整える関数を追加
-
+// 既存データを「子対応」に整える関数
 function normalizeData() {
   categories.forEach(cat => {
     (cat.items || []).forEach(item => {
-      if (!Array.isArray(item.children)) item.children = []; // 子配列を保証
-      if (typeof item.collapsed !== 'boolean') item.collapsed = false; // 折りたたみ状態
+      if (!Array.isArray(item.children)) item.children = [];
+      if (typeof item.collapsed !== 'boolean') item.collapsed = false;
+      if (typeof item.stamped !== 'boolean') item.stamped = false;
+      item.children.forEach(ch => {
+        if (typeof ch.stamped !== 'boolean') ch.stamped = false;
+      });
     });
   });
 }
 
-
+///////////////////////////////////////////
 
 function getCategoryTotals(cat) {
   let total = 0;
@@ -623,53 +626,68 @@ function exportCSV() {
   a.click();
 }
 
-function importCSV(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const lines = e.target.result.split("\n").slice(1); // ヘッダ除去
-    let newCategories = [];
 
-    lines.forEach(line => {
-      if (!line.trim()) return;
-      const [catName, parentText, childText, done] = line.split(",");
+// CSVインポート（既存データを消して上書き）
+function importCSV() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".csv";
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-      // カテゴリ探す / なければ作る
-      let category = newCategories.find(c => c.name === catName);
-      if (!category) {
-        category = { id: Date.now() + Math.random(), name: catName, items: [] };
-        newCategories.push(category);
-      }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const lines = ev.target.result.split("\n").slice(1); // ヘッダ除去
+      let newCategories = [];
 
-      // 親探す / なければ作る
-      let parent = category.items.find(i => i.text === parentText);
-      if (!parent) {
-        parent = { text: parentText, stamped: false, children: [] };
-        category.items.push(parent);
-      }
+      lines.forEach(line => {
+        if (!line.trim()) return;
+        // カンマ前後の空白を除去して分割
+        const [catNameRaw, parentTextRaw, childTextRaw, doneRaw] = line.split(/\s*,\s*/);
+        const catName = catNameRaw?.trim();
+        const parentText = parentTextRaw?.trim();
+        const childText = childTextRaw?.trim();
+        const doneFlag = doneRaw?.trim() === "1" || doneRaw?.trim() === 1;
 
-      if (childText) {
-        // 子アイテム
-        parent.children.push({
-          text: childText,
-          stamped: done === "1"  // ← スタンプ反映
-        });
-      } else {
-        // 親アイテムのスタンプ
-        parent.stamped = done === "1"; // ← スタンプ反映
-      }
-    });
+        if (!catName || !parentText) return;
 
-    // 読み込んだデータで置き換え
-    categories = newCategories;
-    saveData();
-    renderCategories();
-  };
+        // カテゴリ探す / なければ作る
+        let category = newCategories.find(c => c.name === catName);
+        if (!category) {
+          category = { id: Date.now() + Math.random(), name: catName, items: [] };
+          newCategories.push(category);
+        }
 
-  if (file instanceof Blob) {
+        // 親探す / なければ作る
+        let parent = category.items.find(i => i.text === parentText);
+        if (!parent) {
+          parent = { text: parentText, stamped: false, children: [], collapsed: false };
+          category.items.push(parent);
+        }
+
+        if (childText) {
+          // 子アイテム
+          parent.children.push({
+            text: childText,
+            stamped: doneFlag
+          });
+        } else if (parent.stamped !== true) {
+          // 親アイテムのスタンプは上書きしすぎない
+          parent.stamped = doneFlag;
+        }
+      });
+
+      categories = newCategories;
+      normalizeData();
+      saveData();
+      renderCategories();
+      renderItems();
+    };
+
     reader.readAsText(file);
-  } else {
-    alert("ファイルが正しく選択されていません。");
-  }
+  });
+  input.click();
 }
 
 
