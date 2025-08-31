@@ -6,18 +6,29 @@
   <meta name="theme-color" content="#2196F3">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css?v=11">
+  <link rel="icon" href="data:,">
   <title>学習管理アプリ</title>
 </head>
 <body>
+
   <!-- 画面1：科目一覧 -->
   <div id="screen1">
     <div id="category-list" class="list"></div>
-    <div class="bottom-buttons">
-      <button id="export-btn" class="secondary-btn">エクスポート</button>
-      <button id="import-btn" class="secondary-btn">インポート</button>
+  
+    <!-- 上部に配置する＋ボタン -->
+    <div class="top-button">
       <button id="add-category-btn" class="circle-btn">＋</button>
     </div>
+  
+    <!-- 下部に配置するインポート・エクスポートボタン -->
+    <div class="bottom-buttons">
+      <button id="csv-export-btn" class="secondary-btn">CSV書き出し</button>
+      <button id="csv-import-btn" class="secondary-btn">CSV読み込み</button>
+      <button id="export-btn" class="secondary-btn">エクスポート</button>
+      <button id="import-btn" class="secondary-btn">インポート</button>
+    </div>
   </div>
+
 
   <!-- 画面2：項目一覧 -->
   <div id="screen2" class="hidden">
@@ -27,19 +38,21 @@
     </header>
     <div id="item-list" class="list"></div>
     <div class="bottom-buttons">
-      <button id="add-item-btn" class="circle-btn">＋</button>
+      <button id="add-item-btn" class="circle-btn screen2-btn">＋</button>
     </div>
   </div>
 
   <!-- 科目用メニュー -->
-  <div id="category-action-menu" class="action-menu">
+  <div id="category-action-menu" class="action-menu bottom-sheet">
+    <button id="move-category-up-btn">上へ</button>
+    <button id="move-category-down-btn">下へ</button>
     <button id="rename-category-btn">名前変更</button>
     <button id="delete-category-btn">削除</button>
     <button id="cancel-category-btn">キャンセル</button>
   </div>
 
   <!-- 項目用メニュー -->
-  <div id="item-action-menu" class="action-menu">
+  <div id="item-action-menu" class="action-menu bottom-sheet">
     <button id="move-up-btn">上へ</button>
     <button id="move-down-btn">下へ</button>
     <button id="rename-item-btn">名前変更</button>
@@ -47,6 +60,16 @@
     <button id="cancel-item-btn">キャンセル</button>
   </div>
 
-  <script src="script.js?v=11" defer></script>
+  <!-- 子アイテム用メニュー -->
+  <div id="child-action-menu" class="action-menu bottom-sheet">
+    <button id="move-child-up-btn">上へ</button>
+    <button id="move-child-down-btn">下へ</button>
+    <button id="rename-child-btn">名前変更</button>
+    <button id="delete-child-btn">削除</button>
+    <button id="cancel-child-btn">キャンセル</button>
+  </div>
+
+
+  <script src="script.js?v=12" defer></script>
 </body>
 </html>

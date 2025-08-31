@@ -2,7 +2,7 @@
 body {
   margin: 0;
   font-family: sans-serif;
-  background: #f5f7fa;
+  background: #eeeeee;
   color: #333;
   display: flex;
   flex-direction: column;
@@ -25,8 +25,9 @@ body {
   background: #ffffff;
   margin-bottom: 0.5rem;
   padding: 0.75rem;
-  border: 2px solid #2196F3;
+  border: none;
   border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   font-size: 1.2rem;
   position: relative;
 }
@@ -62,9 +63,46 @@ button {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   transition: background 0.2s;
 }
+
+/* ＋ボタンだけ右下固定 */
+#add-category-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
 .circle-btn:hover {
   background: #1976D2;
 }
+
+/* 画面2の＋ボタンだけ色を変える */
+.circle-btn.screen2-btn {
+  background: #000080;
+  color: #fff;
+  font-size: 1.8rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background 0.2s;
+}
+
+.circle-btn.screen2-btn:hover {
+  background: #000060; /* 任意でホバー色 */
+}
+
+#add-item-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+
 
 /* --- メニュー「・・・」ボタンの調整 --- */
 .menu-btn,
@@ -85,6 +123,19 @@ button {
   opacity: 0.7;
 }
 
+.top-button {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.bottom-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
 
 /* 画面下のボタン配置 */
 .bottom-buttons {
@@ -110,26 +161,37 @@ button {
   cursor: pointer;
 }
 
-/* アクションメニュー */
-.action-menu {
-  display: none;
-  position: absolute;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+/* ボトムシート型のアクションメニュー */
+.action-menu.bottom-sheet {
+  position: fixed;
+  left: 0;
+  bottom: -100%; /* 初期状態で隠す */
+  width: 100%;
+  background: white;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+  transition: bottom 0.3s ease;
   z-index: 1000;
+  padding: 10px 0;
+  text-align: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
 }
-.action-menu button {
+
+.action-menu.bottom-sheet.show {
+  bottom: 0;
+}
+
+.action-menu.bottom-sheet button {
   display: block;
   width: 100%;
-  padding: 0.5rem 1rem;
-  text-align: left;
+  padding: 1rem;
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  text-align: center;
 }
-.action-menu button:hover {
+
+.action-menu.bottom-sheet button:hover {
   background: #f0f0f0;
 }
 
@@ -145,6 +207,97 @@ header h2 {
   flex-grow: 1;
   margin: 0;
   text-align: center;
-  color: #2196F3;
+  color: #191970;
   font-size: 1.4rem;
 }
+
+/* 進捗バー(今は使っていないけど） */
+.progress-bar {
+  flex: 0 0 50px;          /* 固定幅（50px） */
+  height: 6px;
+  background: #eee;
+  border-radius: 3px;
+  margin-right: 10px;
+  overflow: hidden;
+  align-self: center;
+  pointer-events: none;    /* バー自体はクリック無効 */
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.4s ease, background-color 0.4s ease;
+  border-radius: 3px;
+}
+
+/* 画面2のヘッダーをスクロールしても固定 + 影付き */
+#screen2 header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* 下に影を追加 */
+  border-bottom: none;           /* 青い線を削除 */
+}
+
+
+/* 円グラフ（進捗） */
+.progress-circle {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.progress-circle circle {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.list::after {
+  content: '';
+  display: block;
+  height: 80px; /* ＋ボタンの大きさより少し大きめに */
+}
+
+/* 子アイテム（サブタスク）の見た目 */
+.child-item {
+  margin-left: 28px;          /* 親より少し右へ */
+  background: #ffffff;        /* 親と同じ */
+}
+
+.child-item .item-text {
+  /* 必要なら微調整（任意） */
+}
+
+/* 親をタップして折りたたみ中のとき、子を非表示 */
+.parent-collapsed + .children-wrap {
+  display: none;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+}
+
+.parent-item {
+  font-weight: bold;
+  background-color: #eef6ff;
+}
+
+.child-item {
+  margin-left: 20px;
+  background-color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+
+
