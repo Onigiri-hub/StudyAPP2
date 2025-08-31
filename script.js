@@ -599,12 +599,14 @@ function importJSON() {
   input.click();
 }
 
-// CSVエクスポート（子アイテム対応）
+
+// ===== CSVインポート／エクスポート =====
+
 function exportCSV() {
   let csv = "Category,Parent,Child,Done\n";
   categories.forEach(cat => {
     cat.items.forEach(item => {
-      // 親アイテム
+      // 親アイテム自体
       csv += `${cat.name},${item.text},,${item.stamped ? 1 : 0}\n`;
 
       // 子アイテム
@@ -621,59 +623,53 @@ function exportCSV() {
   a.click();
 }
 
-// CSVインポート（既存データを消して上書き、子アイテム対応）
-function importCSV() {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".csv";
-  input.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+function importCSV(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split("\n").slice(1); // ヘッダ除去
+    let newCategories = [];
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const lines = ev.target.result.split("\n").slice(1); // ヘッダ除去
-      let newCategories = [];
+    lines.forEach(line => {
+      if (!line.trim()) return;
+      const [catName, parentText, childText, done] = line.split(",");
 
-      lines.forEach(line => {
-        if (!line.trim()) return;
-        const [catName, parentText, childText, done] = line.split(",");
+      // カテゴリ探す / なければ作る
+      let category = newCategories.find(c => c.name === catName);
+      if (!category) {
+        category = { id: Date.now() + Math.random(), name: catName, items: [] };
+        newCategories.push(category);
+      }
 
-        // カテゴリ探す / なければ作る
-        let category = newCategories.find(c => c.name === catName);
-        if (!category) {
-          category = { id: Date.now() + Math.random(), name: catName, items: [] };
-          newCategories.push(category);
-        }
+      // 親探す / なければ作る
+      let parent = category.items.find(i => i.text === parentText);
+      if (!parent) {
+        parent = { text: parentText, stamped: false, children: [] };
+        category.items.push(parent);
+      }
 
-        // 親探す / なければ作る
-        let parent = category.items.find(i => i.text === parentText);
-        if (!parent) {
-          parent = { text: parentText, stamped: false, children: [], collapsed: false };
-          category.items.push(parent);
-        }
+      if (childText) {
+        // 子アイテム
+        parent.children.push({
+          text: childText,
+          stamped: done === "1"  // ← スタンプ反映
+        });
+      } else {
+        // 親アイテムのスタンプ
+        parent.stamped = done === "1"; // ← スタンプ反映
+      }
+    });
 
-        if (childText) {
-          // 子アイテム
-          parent.children.push({
-            text: childText,
-            stamped: done === "1"
-          });
-        } else {
-          // 親アイテムのスタンプ
-          parent.stamped = done === "1";
-        }
-      });
+    // 読み込んだデータで置き換え
+    categories = newCategories;
+    saveData();
+    renderCategories();
+  };
 
-      categories = newCategories; // 既存データを上書き
-      normalizeData();
-      saveData();
-      renderCategories();
-      renderItems();
-    };
+  if (file instanceof Blob) {
     reader.readAsText(file);
-  });
-  input.click();
+  } else {
+    alert("ファイルが正しく選択されていません。");
+  }
 }
 
 
